@@ -10,6 +10,7 @@
 ;;; Code:
 (require 'cl-lib)
 (require 'dash)
+(require 's)
 
 (defun bfuture-new (&rest cmd)
   "Create a new future process for command CMD.
@@ -65,9 +66,16 @@ Optional keywords:
 
 RESULT: function called to fetch the output from a process.
 Default is `bfuture-result'."
-
   (-each procs 'bfuture-await-to-finish)
   (--map (funcall result it) procs))
+
+(defun bfuture-take-last (n result)
+  "Take last N lines of RESULT.
+Where RESULT is a string and each line is separate by '\n'.
+Return a string containing the last N lines."
+  (unless (stringp result)
+    (error "RESULT must be a string"))
+  (s-join "\n" (-take-last n (s-lines result))))
 
 (provide 'bfuture)
 ;;; bfuture.el ends here
