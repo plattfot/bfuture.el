@@ -19,6 +19,8 @@ the command. Access the output using:
 \(process-get process 'buffer\)."
   (let* ((buffer (generate-new-buffer "*bfuture-process*"))
          (proc (apply 'start-file-process `(,(buffer-name buffer) ,buffer ,@cmd))))
+    ;; Disable "Process *bfuture-process* finished" when running locally.
+    (set-process-sentinel proc #'ignore)
     (process-put proc 'buffer buffer)
     (process-put proc 'remote (file-remote-p default-directory))
     proc))
@@ -37,17 +39,7 @@ This will delete the buffer associated with the PROCESS"
       (error "No buffer found associated with %s" process))
     (let ((output
            (with-current-buffer buffer
-             (let ((curr-point
-                    (if (not remote)
-                        (progn
-                          ;; Removed the command name
-                          (goto-char (point-max))
-                          (forward-line -2)
-                          (point))
-                      ;; Tramp doesn't output the command name
-                      (point-max))))
-               (buffer-substring-no-properties
-                (point-min) curr-point)))))
+             (buffer-substring-no-properties (point-min) (point-max)))))
       (kill-buffer buffer)
       output)))
 
