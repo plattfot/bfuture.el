@@ -43,23 +43,26 @@ This will delete the buffer associated with the PROCESS"
       (kill-buffer buffer)
       output)))
 
-(defun bfuture-result-when-done (proc)
+(cl-defun bfuture-result-when-done (proc &key (result 'bfuture-result))
   "Return the result of PROC when the process has finished.
-This will wait(block) unti the process is finished"
+This will wait(block) unti the process is finished.
+Optional keywords:
+
+RESULT: function called to fetch the output from a process.
+Default is `bfuture-result'."
   (bfuture-await-to-finish proc)
-  (bfuture-result proc))
+  (funcall result proc))
 
 (cl-defun bfuture-result-when-all-done (procs &key (result 'bfuture-result))
   "Retrieve the result of all PROCS when the processes are finished.
-Return a list with corresponding output as a string.
+Return a list of strings.
 
 Note: This will block until all are done.
 Optional keywords:
 
 RESULT: function called to fetch the output from a process.
 Default is `bfuture-result'."
-  (-each procs 'bfuture-await-to-finish)
-  (--map (funcall result it) procs))
+  (--map (bfuture-result-when-done it :result result) procs))
 
 (defun bfuture-take-last (n result)
   "Take last N lines of RESULT.
