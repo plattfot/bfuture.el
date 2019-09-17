@@ -28,7 +28,8 @@ the command. Access the output using:
 (defun bfuture-await-to-finish (process)
   "Wait until PROCESS is finished."
   (let (inhibit-quit)
-    (while (accept-process-output process))))
+    (while (accept-process-output process)))
+  process)
 
 (defun bfuture-result (process)
   "Return the output from PROCESS as a string.
