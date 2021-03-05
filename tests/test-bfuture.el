@@ -5,8 +5,7 @@
 ;;; Code:
 (require 'ert)
 (require 'bfuture)
-(require 's)
-(require 'dash)
+(require 'seq)
 
 (ert-deftest test-bfuture-new ()
   "Test spawning a process."
@@ -16,7 +15,7 @@
     (bfuture-await-to-finish proc)
     (should (null (process-live-p proc)))
     (with-current-buffer buffer
-      (should (s-equals? (buffer-substring-no-properties
+      (should (string-equal (buffer-substring-no-properties
                           (point-min) (point-max))
                          "Test bfuture\n")))
     ;; Clean up
@@ -27,22 +26,23 @@
   (let* ((nprocs (number-sequence 0 5))
          (procs (--map (bfuture-new "echo" (format "Test bfuture%s" it)) nprocs))
          (result (bfuture-result-when-all-done procs)))
-    (--each procs (should (null (process-live-p it))))
+    (seq-each (lambda (it) (should (null (process-live-p it)))) procs)
     (should (listp result))
-    (--each (-zip result nprocs)
-      (should (s-equals? (car it)
-                         (format "Test bfuture%s\n" (cdr it)))))
+    (seq-each
+     (lambda (it)
+       (should (string-equal (car it) (format "Test bfuture%s\n" (cdr it)))))
+     (mapcar* 'cons result nprocs))
     ;; Clean up
-    (let ((buffers (--map (process-get it 'buffer) procs)))
-      (--each buffers
-        (should-not (buffer-name it))
-        ;; Clean up incase something went wrong
-        (when (bufferp it)
-          (kill-buffer it))))))
+    (seq-each (lambda (it)
+                (should-not (buffer-name it))
+                ;; Clean up incase something went wrong
+                (when (bufferp it)
+                  (kill-buffer it)))
+              (seq-map (lambda (it) (process-get it 'buffer)) procs))))
 
 (ert-deftest test-bfuture-take-last ()
   "Test picking out last lines of output from `bfuture-result'."
-  (should (s-equals?
+  (should (string-equal
            (bfuture-take-last
             2
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do

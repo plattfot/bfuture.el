@@ -1,17 +1,15 @@
 ;;; bfuture --- basic future concept -*- lexical-binding: t -*-
 
 ;;; Commentary:
-;; Inspired by pfuture.el - https://github.com/Alexander-Miller/pfuture
+;; Based on the code of pfuture.el - https://github.com/Alexander-Miller/pfuture
 
 ;; Have the basic concepts of spawning a process and retrieving the
-;; output. This works with tramp to launch processes on a remote host.
-;; Which is sadly not working in pfuture. But looses the ability to
-;; tell the stdout and stderr apart.
+;; output. But this works with tramp to launch processes on a remote
+;; host. Which is sadly not working in pfuture.
 
 ;;; Code:
 (require 'cl-lib)
-(require 'dash)
-(require 's)
+(require 'seq)
 
 (defun bfuture-new (&rest cmd)
   "Create a new future process for command CMD.
@@ -64,7 +62,7 @@ Optional keywords:
 
 RESULT: function called to fetch the output from a process.
 Default is `bfuture-result'."
-  (--map (bfuture-result-when-done it :result result) procs))
+  (seq-map (lambda (it) (bfuture-result-when-done it :result result)) procs))
 
 (defun bfuture-take-last (n result)
   "Take last N lines of RESULT.
@@ -72,7 +70,8 @@ Where RESULT is a string and each line is separate by '\n'.
 Return a string containing the last N lines."
   (unless (stringp result)
     (error "RESULT must be a string"))
-  (s-join "\n" (-take-last n (s-lines result))))
+  (string-join (seq-reverse (seq-take (seq-reverse (split-string result "\n")) n))
+               "\n"))
 
 (provide 'bfuture)
 ;;; bfuture.el ends here
