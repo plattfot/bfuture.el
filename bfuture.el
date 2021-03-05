@@ -33,8 +33,7 @@ the command. Access the output using:
 (defun bfuture-result (process)
   "Return the output from PROCESS as a string.
 This will delete the buffer associated with the PROCESS"
-  (let ((buffer (process-get process 'buffer))
-        (remote (process-get process 'remote)))
+  (let ((buffer (process-get process 'buffer)))
     (unless buffer
       (error "No buffer found associated with %s" process))
     (let ((output
