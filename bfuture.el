@@ -1,13 +1,38 @@
 ;;; bfuture --- basic future concept -*- lexical-binding: t -*-
 
+;; Copyright (C) 2020-2021 Fredrik Salomonsson
+;; Author: Fredrik Salomonsson <plattfot@posteo.net>
+;; Created: 15 Feb 2020
+;; Package-Requires: ((emacs "27.2") cl-lib seq subr-x)
+;; Keywords: lisp
+;; Version 1.0.0
+
+;; This file is not part of GNU Emacs.
+
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
-;; Based on the code of pfuture.el - https://github.com/Alexander-Miller/pfuture
+
+;; Based on the code of pfuture.el[0]
+;; [0] https://github.com/Alexander-Miller/pfuture
 
 ;; Have the basic concepts of spawning a process and retrieving the
-;; output. But this works with tramp to launch processes on a remote
-;; host. Which is sadly not working in pfuture.
+;; output. This also works with tramp to launch processes on a remote
+;; host. Which is sadly is not working in pfuture.
 
 ;;; Code:
+(require 'subr-x)
 (require 'cl-lib)
 (require 'seq)
 
@@ -15,7 +40,7 @@
   "Create a new future process for command CMD.
 Any arguments after the command are interpreted as arguments to
 the command. Access the output using:
-\(process-get process 'buffer\)."
+\(process-get process 'buffer)."
   (let* ((buffer (generate-new-buffer "*bfuture-process*"))
          (proc (apply 'start-file-process `(,(buffer-name buffer) ,buffer ,@cmd))))
     ;; Disable "Process *bfuture-process* finished" when running locally.
@@ -44,7 +69,7 @@ This will delete the buffer associated with the PROCESS"
 
 (cl-defun bfuture-result-when-done (proc &key (result 'bfuture-result))
   "Return the result of PROC when the process has finished.
-This will wait(block) unti the process is finished.
+This will wait (block) until the process is finished.
 Optional keywords:
 
 RESULT: function called to fetch the output from a process.
